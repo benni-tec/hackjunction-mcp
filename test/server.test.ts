@@ -15,21 +15,21 @@ const handlers = {
     { id: 2, eventId: 7, title: "New", content: "Food!", createdAt: "2026-11-13 18:00:00", updatedAt: "" },
   ],
   "event.getEventChallenges": () => [
-    { id: 298, eventId: 7, trackId: 106, name: "Internet Butler", description: "Build an agent", insights: null, resources: null, image: null },
+    { id: 3, eventId: 7, trackId: 2, name: "Robot Butler", description: "Build an agent", insights: null, resources: null, image: null },
   ],
   "event.getEventSideChallenges": () => [
-    { id: 29, eventId: 7, trackId: 1, name: "Best use of Exa", description: "Use Exa", insights: null, resources: null, image: null },
+    { id: 4, eventId: 7, trackId: 1, name: "Best use of search", description: "Use a search API", insights: null, resources: null, image: null },
   ],
   "teams.getMyTeam": () => sampleTeam,
   "teams.getMyTeamMembers": () => [
     { userId: 1, externalUserId: "user_1", role: "lead", name: "Ada", imageUrl: "", emailAddresses: [{ emailAddress: "ada@example.com" }] },
   ],
-  "teams.getTeamInterests": () => [{ id: 1, eventId: 7, teamId: 10, challengeId: 298 }],
+  "teams.getTeamInterests": () => [{ id: 1, eventId: 7, teamId: 10, challengeId: 3 }],
   "project.getTeamProjects": () => [
     { ...sampleProject, projectLinks: [{ type: "demo", link: "https://example.com" }] },
     { ...sampleProject, id: 8, name: "Alfred", submission: { projectId: 8 } },
   ],
-  "project.getProjectSideChallenges": () => [{ sideChallengeId: 29 }],
+  "project.getProjectSideChallenges": () => [{ sideChallengeId: 4 }],
   "project.saveProjectSubmission": () => ({ projectId: 7, updatedAt: "u2" }),
   "teams.setTableNumber": () => null,
   "teams.setTeamInterests": () => null,
@@ -85,11 +85,11 @@ test("exposes write tools by default and leaves them out when writes are off", a
 
 test("writes ask the user to confirm before changing anything", async () => {
   const { platform, call, prompts } = await connect();
-  const result = await call("set_team_interests", { challengeIds: [298] });
+  const result = await call("set_team_interests", { challengeIds: [3] });
   assert.ok(!result.isError);
   assert.equal(prompts.length, 1);
-  assert.match(prompts[0]!, /Internet Butler/);
-  assert.deepEqual(platform.inputs.get("teams.setTeamInterests"), [{ teamId: 10, eventId: 7, challengeIds: [298] }]);
+  assert.match(prompts[0]!, /Robot Butler/);
+  assert.deepEqual(platform.inputs.get("teams.setTeamInterests"), [{ teamId: 10, eventId: 7, challengeIds: [3] }]);
 });
 
 for (const [action, answered] of [["decline", "declined"], ["cancel", "cancelled"]] as const) {
@@ -140,8 +140,8 @@ test("sorts the schedule chronologically", async () => {
 
 test("get_challenge finds main and side challenges", async () => {
   const { call } = await connect();
-  assert.equal((await call("get_challenge", { challengeId: 298 })).json().kind, "main");
-  assert.equal((await call("get_challenge", { challengeId: 29 })).json().kind, "side");
+  assert.equal((await call("get_challenge", { challengeId: 3 })).json().kind, "main");
+  assert.equal((await call("get_challenge", { challengeId: 4 })).json().kind, "side");
   const missing = await call("get_challenge", { challengeId: 1 });
   assert.ok(missing.isError);
 });
@@ -152,14 +152,14 @@ test("get_my_team leaves out teammates' email addresses", async () => {
   assert.ok(!result.text.includes("ada@example.com"));
   const { members, interestedIn } = result.json();
   assert.deepEqual(members, [{ userId: 1, name: "Ada", role: "lead" }]);
-  assert.deepEqual(interestedIn, [{ challengeId: 298, name: "Internet Butler" }]);
+  assert.deepEqual(interestedIn, [{ challengeId: 3, name: "Robot Butler" }]);
 });
 
 test("get_my_projects joins links, side challenges and submission state", async () => {
   const { platform, call } = await connect();
   const [jeeves, alfred] = (await call("get_my_projects")).json();
   assert.equal(jeeves.name, "Jeeves");
-  assert.deepEqual(jeeves.sideChallengeIds, [29]);
+  assert.deepEqual(jeeves.sideChallengeIds, [4]);
   assert.equal(jeeves.submitted, false);
   assert.equal(alfred.submitted, true);
   assert.equal(jeeves.links[0].link, "https://example.com");
@@ -207,7 +207,7 @@ test("save_project_draft refuses an update without baseUpdatedAt", async () => {
     name: "Jeeves",
     punchline: "Your butler",
     description: "…",
-    challengeId: 298,
+    challengeId: 3,
     sideChallengeIds: [],
     links: [],
   };
@@ -227,7 +227,7 @@ test("save_project_draft refuses an update without baseUpdatedAt", async () => {
       name: "Jeeves",
       punchline: "Your butler",
       description: "…",
-      challenge_id: 298,
+      challenge_id: 3,
       links: [],
       tech_challenge_ids: [],
     },

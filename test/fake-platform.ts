@@ -95,7 +95,7 @@ export const sampleEvent = {
   discordLink: null,
   faqLink: null,
   participantCount: 1500,
-  userRegistrationId: 900,
+  userRegistrationId: 5,
   userRegistrationStatus: "checked-in",
   schedule: [
     { id: 2, eventId: 7, name: "Submissions close", datetime: at("2026-11-15T08:00:00Z"), weight: 0 },
@@ -123,7 +123,7 @@ export const sampleProject = {
   name: "Jeeves",
   punchline: null,
   description: null,
-  challengeId: 298,
+  challengeId: 3,
   createdAt: "2026-11-13 21:00:00.000000",
   updatedAt: "u1",
   projectLinks: [] as { type: string; link: string }[],

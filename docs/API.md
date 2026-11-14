@@ -85,10 +85,10 @@ Useful event fields: `startTime`, `endTime`, `submissionsStartTime`, `submission
   "name": "…",              // ≤30 chars
   "punchline": "…",         // ≤200
   "description": "…",       // ≤5000, markdown
-  "challenge_id": 298,      // required; one project per challenge per team
+  "challenge_id": 3,        // required; one project per challenge per team
   "baseUpdatedAt": "…",     // updatedAt of the version being edited → CONFLICT if stale
   "links": [{ "type": "demo" | "source_code" | "video" | "other" | "presentation", "value": "https://…" }],
-  "tech_challenge_ids": [29]
+  "tech_challenge_ids": [4]
 }
 ```
 Submitting requires name, punchline, description and challenge to be filled in. The window is `submissionsStartTime`–`submissionsEndTime`.
