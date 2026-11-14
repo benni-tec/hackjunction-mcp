@@ -1,0 +1,26 @@
+{
+  "name": "junction-mcp",
+  "version": "0.1.0",
+  "scripts": {
+    "typecheck": "tsc",
+    "test": "node --import ./test/no-network.ts --test test/*.test.ts",
+    "test:live": "node scripts/live-check.ts",
+    "start": "node src/main.ts"
+  },
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@trpc/client": "^11.28.0",
+    "@trpc/server": "^11.28.0",
+    "superjson": "^2.2.6",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  },
+  "private": true,
+  "bin": {
+    "junction-mcp": "src/main.ts"
+  }
+}
