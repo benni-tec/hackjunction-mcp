@@ -3,14 +3,14 @@
  *
  * Inputs were probed against the server's own Zod validation (mistyped payloads → BAD_REQUEST issues),
  * so their field names, types, enums and required-ness match the server.
- * Outputs were inferred from live responses on 2026-11-13. Fields marked "only null observed" have a guessed type.
+ * Outputs were inferred from live responses. Fields marked "only null observed" have a guessed type.
  */
 import { z } from "zod";
 
 const id = z.number().int();
 /** Event timings; sent as superjson Dates, so they arrive as `Date`. */
 const isoDateTime = z.date();
-/** Postgres timestamp without zone, e.g. `2026-11-13 16:30:35.833443` (createdAt/updatedAt). */
+/** Postgres timestamp without zone, formatted `YYYY-MM-DD HH:MM:SS.ffffff` (createdAt/updatedAt). */
 const dbTimestamp = z.string();
 
 // ---------------------------------------------------------------------------
@@ -235,9 +235,8 @@ export const LinkType = z.enum(["demo", "source_code", "video", "other", "presen
 export type LinkType = z.infer<typeof LinkType>;
 
 /**
- * Observed in `getTeamProjects` on 2026-11-14. It embeds the project's links and submission, so listing projects
- * doesn't need `getProjectLinks` or `getProjectSubmission`. Every project then had no links and no submission,
- * so the shape of those two is still unknown.
+ * Observed in `getTeamProjects`. It embeds the project's links and submission, so listing projects
+ * doesn't need `getProjectLinks` or `getProjectSubmission`. Link and submission shapes not observed yet.
  */
 export const Project = z.looseObject({
   id,

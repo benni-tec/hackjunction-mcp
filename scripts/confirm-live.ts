@@ -2,8 +2,8 @@
  * Human gate for scripts that talk to the real Junction platform.
  *
  * Refuses to run without an interactive terminal (so agents, CI and piped input can't trigger it), then asks the
- * person to type a confirmation. Bursts of requests got this machine's IP challenged by Vercel on 2026-11-13, and the
- * account is needed for the hackathon.
+ * person to type a confirmation. Bursts of requests get the IP challenged by Vercel, and the account is needed for
+ * the hackathon.
  */
 import { createInterface } from "node:readline/promises";
 

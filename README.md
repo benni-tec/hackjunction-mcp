@@ -63,10 +63,10 @@ For a quick manual check you can instead set `JUNCTION_TOKEN` to a session JWT (
 
 ## Don't get your account flagged
 
-On 2026-11-13 a few bursts of ~20 automated calls were enough for Vercel to put a Security Checkpoint (`403`, `x-vercel-mitigated: challenge`) in front of this IP. So the server:
+Short bursts of automated calls are enough for Vercel to put a Security Checkpoint (`403`, `x-vercel-mitigated: challenge`) in front of your IP. So the server:
 
 - sends one HTTP request at a time, at least 1 s apart, and caches results (minutes for events and challenges, 30 s for projects);
-- never prefetches, and batches lookups that happen together (listing all projects takes 4 requests, however many projects there are);
+- never prefetches, and batches lookups that happen together (listing projects costs the same few requests however many there are);
 - stops all traffic for 15 minutes on a checkpoint or `429`, and never retries on its own. Open the site in a normal browser instead.
 
 ## Development
@@ -74,14 +74,7 @@ On 2026-11-13 a few bursts of ~20 automated calls were enough for Vercel to put 
 ```sh
 npm test            # offline: fake platform, real network disabled
 npm run typecheck
-npm run test:live   # LIVE: ~20 read-only calls with your account
+npm run test:live   # LIVE: read-only calls with your account
 ```
 
 `test:live` checks the DTOs in `src/api/dto.ts` against real responses. It only runs from an interactive terminal and asks you to type `send` first, so agents and CI can't trigger it.
-
-### Not yet seen live
-
-Signing in through Clerk and `getTeamProjects` were confirmed against the real platform on 2026-11-14. Still typed from the frontend code only:
-
-- the shape of a project link and of a submission (every project had none);
-- the outputs of `saveProjectSubmission`, `createProjectSubmission` and `deleteProjectSubmission`.

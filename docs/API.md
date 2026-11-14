@@ -1,6 +1,6 @@
 # Junction Platform API map
 
-Reverse-engineered from the live participant frontend at https://hackjunction.app on 2026-11-13.
+Reverse-engineered from the live participant frontend at https://hackjunction.app.
 The live platform is a Next.js App Router rewrite and is **not** the open-source
 `hackjunction/JunctionApp` (Express + Auth0) codebase.
 

@@ -3,7 +3,6 @@
  *
  * Session JWTs live 60 s, so they are minted from the long-lived Clerk client the same way the website does:
  * `POST https://clerk.hackjunction.app/v1/client/sessions/{sid}/tokens` with the `__client` cookie.
- * Not yet verified against the live Clerk instance (see README, "Live checks").
  */
 
 export const CLERK_FAPI_URL = "https://clerk.hackjunction.app";

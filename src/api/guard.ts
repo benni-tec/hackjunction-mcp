@@ -1,6 +1,6 @@
 /**
  * A fetch wrapper that keeps traffic to the Junction platform gentle, so the participant's IP and account don't get flagged.
- * On 2026-11-13 a few bursts of ~20 calls were enough to trip Vercel's Security Checkpoint.
+ * Short bursts of calls are enough to trip Vercel's Security Checkpoint.
  *
  * - One request in flight at a time, started at least `minIntervalMs` apart.
  * - A Vercel challenge (403 with `x-vercel-mitigated`) or a 429 trips a breaker: every later call fails fast, without
