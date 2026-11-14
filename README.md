@@ -1,10 +1,12 @@
-# junction-mcp
+# hackjunction-mcp
 
-An MCP server for participants of Junction hackathons. It talks to the participant API of [hackjunction.app](https://hackjunction.app) (tRPC + superjson, Clerk auth) on your behalf. See [docs/API.md](docs/API.md) for the reverse-engineered API map.
+An MCP server for participants of Junction hackathons. It lets an agent such as Claude Code read your event, challenges and team on [hackjunction.app](https://hackjunction.app), and fill in and submit your team's projects. Every change waits for your OK first.
+
+It talks to the platform's participant API (tRPC + superjson, Clerk auth) with your own session. [docs/API.md](docs/API.md) maps that API; it was reverse-engineered from the website.
 
 ## Tools
 
-Read-only, always on:
+Read-only:
 
 | Tool | What it returns |
 |---|---|
@@ -16,13 +18,27 @@ Read-only, always on:
 | `list_teams` | Teams in the event, filterable by name |
 | `get_my_projects` | Your team's projects with links, side challenges and submission state |
 
-Writes: `save_project_draft`, `submit_project`, `unsubmit_project`, `edit_team`, `set_table_number`, `set_team_interests`. Each call first shows you what it's about to change and waits for your OK (MCP elicitation). If you decline, or your client can't show the prompt, nothing is sent. Set `JUNCTION_ALLOW_WRITES=0` to leave these tools out. Updating a draft needs the project's `updatedAt` from `get_my_projects`, so a stale edit can't overwrite a teammate's newer one (the server answers `CONFLICT`).
+Writes:
+
+| Tool | What it changes |
+|---|---|
+| `save_project_draft` | Creates or updates a project draft. Updates need the project's `updatedAt` from `get_my_projects`, so a stale edit can't overwrite a teammate's newer one (the server answers `CONFLICT`) |
+| `submit_project` / `unsubmit_project` | Submits a draft as a final entry, or withdraws it back to draft |
+| `edit_team` | Team name, subtitle, description and contact |
+| `set_table_number` | Your team's table |
+| `set_team_interests` | The main challenges your team is interested in |
+
+Before every write, the server shows you what it's about to send and asks you to accept (MCP elicitation). If you decline or cancel, nothing is sent. If your MCP client can't show the prompt, writes are refused. Set `JUNCTION_ALLOW_WRITES=0` to leave the write tools out entirely. Deleting teams, kicking members and leaving a team are deliberately not exposed.
 
 `eventId` is optional everywhere and defaults to your only registered event.
 
 ## Setup
 
+Requires Node ≥ 22.18 (it runs the TypeScript directly).
+
 ```sh
+git clone https://github.com/benni-tec/hackjunction-mcp.git
+cd hackjunction-mcp
 npm install
 ```
 
@@ -31,25 +47,26 @@ Sign in on hackjunction.app in a browser, then copy two values:
 - `JUNCTION_CLERK_CLIENT`: the `__client` cookie of `clerk.hackjunction.app` (DevTools → Application → Cookies).
 - `JUNCTION_CLERK_SESSION`: the session id, `Clerk.session.id` in the DevTools console (`sess_…`).
 
-The server mints the 60-second session tokens from these, the way the website does.
-For a quick manual check you can instead set `JUNCTION_TOKEN` to a session JWT (`await Clerk.session.getToken()`), which expires after 60 s.
+The server mints the 60-second session tokens from these, the way the website does. Treat both like a password.
 
-Claude Code:
+Add it to Claude Code. Run this in your own terminal, so the cookie doesn't end up in a chat transcript:
 
 ```sh
 claude mcp add junction \
-  -e JUNCTION_CLERK_CLIENT=… -e JUNCTION_CLERK_SESSION=… \
-  -- node /path/to/junction-mcp/src/main.ts
+  -e JUNCTION_CLERK_CLIENT='…' -e JUNCTION_CLERK_SESSION='sess_…' \
+  -- node "$PWD/src/main.ts"
 ```
 
-Requires Node ≥ 22.18 (runs the TypeScript directly).
+Restart Claude Code; `/mcp` should list `junction` as connected.
+
+For a quick manual check you can instead set `JUNCTION_TOKEN` to a session JWT (`await Clerk.session.getToken()`), which expires after 60 s.
 
 ## Don't get your account flagged
 
 On 2026-11-13 a few bursts of ~20 automated calls were enough for Vercel to put a Security Checkpoint (`403`, `x-vercel-mitigated: challenge`) in front of this IP. So the server:
 
-- sends one request at a time, at least 1 s apart, and caches results (minutes for events and challenges, 30 s for projects);
-- never prefetches;
+- sends one HTTP request at a time, at least 1 s apart, and caches results (minutes for events and challenges, 30 s for projects);
+- never prefetches, and batches lookups that happen together (listing all projects takes 4 requests, however many projects there are);
 - stops all traffic for 15 minutes on a checkpoint or `429`, and never retries on its own. Open the site in a normal browser instead.
 
 ## Development
@@ -62,7 +79,9 @@ npm run test:live   # LIVE: ~20 read-only calls with your account
 
 `test:live` checks the DTOs in `src/api/dto.ts` against real responses. It only runs from an interactive terminal and asks you to type `send` first, so agents and CI can't trigger it.
 
-### Live checks still outstanding
+### Not yet seen live
 
-- Minting tokens from `JUNCTION_CLERK_CLIENT` / `JUNCTION_CLERK_SESSION` hasn't been tried against the real Clerk instance yet.
-- `Project`, `ProjectLink`, `getProjectSubmission` and the mutation outputs are typed from the frontend code. No project existed when the API was mapped, because submissions open on 2026-11-14 at 12:00 Helsinki time.
+Signing in through Clerk and `getTeamProjects` were confirmed against the real platform on 2026-11-14. Still typed from the frontend code only:
+
+- the shape of a project link and of a submission (every project had none);
+- the outputs of `saveProjectSubmission`, `createProjectSubmission` and `deleteProjectSubmission`.

@@ -296,17 +296,14 @@ export function createJunctionServer({ api, allowWrites = true, now }: JunctionS
       const id = await resolveEventId(eventId);
       const team = await requireTeam(id);
       return cache.get(`projects:${team.id}`, TTL.projects, async () => {
+        // getTeamProjects already embeds each project's links and submission; only side challenges cost a request each.
         const projects = await api.project.getTeamProjects.query({ teamId: team.id, eventId: id });
         return Promise.all(
-          projects.map(async (project) => {
-            const [links, sideChallenges, submission] = await Promise.all([
-              api.project.getProjectLinks.query({ projectId: project.id }),
-              api.project.getProjectSideChallenges.query({ projectId: project.id }),
-              api.project.getProjectSubmission.query({ projectId: project.id }),
-            ]);
+          projects.map(async ({ projectLinks, submission, ...project }) => {
+            const sideChallenges = await api.project.getProjectSideChallenges.query({ projectId: project.id });
             return {
               ...project,
-              links,
+              links: projectLinks,
               sideChallengeIds: sideChallenges.map((s) => s.sideChallengeId),
               submitted: Boolean(submission),
             };

@@ -234,14 +234,24 @@ export const SetTeamInterestsInput = TeamInput.extend({ challengeIds: z.array(id
 export const LinkType = z.enum(["demo", "source_code", "video", "other", "presentation"]);
 export type LinkType = z.infer<typeof LinkType>;
 
-/** Not observed yet (no project existed); fields are those the frontend reads. */
+/**
+ * Observed in `getTeamProjects` on 2026-11-14. It embeds the project's links and submission, so listing projects
+ * doesn't need `getProjectLinks` or `getProjectSubmission`. Every project then had no links and no submission,
+ * so the shape of those two is still unknown.
+ */
 export const Project = z.looseObject({
   id,
+  teamId: id,
+  eventId: id,
+  trackId: id.nullable(),
   name: z.string(),
   punchline: z.string().nullable(),
   description: z.string().nullable(),
   challengeId: id.nullable(),
+  createdAt: dbTimestamp,
   updatedAt: dbTimestamp,
+  projectLinks: z.array(z.looseObject({})),
+  submission: z.unknown(),
 });
 export type Project = z.infer<typeof Project>;
 

@@ -114,3 +114,18 @@ export const sampleTeam = {
   peerReviewRound: null,
   role: "lead",
 };
+
+export const sampleProject = {
+  id: 7,
+  teamId: 10,
+  eventId: 7,
+  trackId: null,
+  name: "Jeeves",
+  punchline: null,
+  description: null,
+  challengeId: 298,
+  createdAt: "2026-11-13 21:00:00.000000",
+  updatedAt: "u1",
+  projectLinks: [] as { type: string; link: string }[],
+  submission: null as unknown,
+};

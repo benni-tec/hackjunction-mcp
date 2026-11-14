@@ -6,7 +6,7 @@ import { ElicitRequestSchema, type ElicitResult } from "@modelcontextprotocol/sd
 import { createJunctionClient } from "../src/api/client.ts";
 import { createGuardedFetch } from "../src/api/guard.ts";
 import { createJunctionServer } from "../src/server.ts";
-import { FakeTrpcError, fakePlatform, sampleEvent, sampleTeam } from "./fake-platform.ts";
+import { FakeTrpcError, fakePlatform, sampleEvent, sampleProject, sampleTeam } from "./fake-platform.ts";
 
 const handlers = {
   "event.getMyEvents": () => [sampleEvent],
@@ -25,10 +25,11 @@ const handlers = {
     { userId: 1, externalUserId: "user_1", role: "lead", name: "Ada", imageUrl: "", emailAddresses: [{ emailAddress: "ada@example.com" }] },
   ],
   "teams.getTeamInterests": () => [{ id: 1, eventId: 7, teamId: 10, challengeId: 298 }],
-  "project.getTeamProjects": () => [{ id: 7, name: "Jeeves", punchline: null, description: null, challengeId: 298, updatedAt: "u1" }],
-  "project.getProjectLinks": () => [{ type: "demo", link: "https://example.com" }],
+  "project.getTeamProjects": () => [
+    { ...sampleProject, projectLinks: [{ type: "demo", link: "https://example.com" }] },
+    { ...sampleProject, id: 8, name: "Alfred", submission: { projectId: 8 } },
+  ],
   "project.getProjectSideChallenges": () => [{ sideChallengeId: 29 }],
-  "project.getProjectSubmission": () => null,
   "project.saveProjectSubmission": () => ({ projectId: 7, updatedAt: "u2" }),
   "teams.setTableNumber": () => null,
   "teams.setTeamInterests": () => null,
@@ -155,12 +156,20 @@ test("get_my_team leaves out teammates' email addresses", async () => {
 });
 
 test("get_my_projects joins links, side challenges and submission state", async () => {
-  const { call } = await connect();
-  const [project] = (await call("get_my_projects")).json();
-  assert.equal(project.name, "Jeeves");
-  assert.deepEqual(project.sideChallengeIds, [29]);
-  assert.equal(project.submitted, false);
-  assert.equal(project.links[0].link, "https://example.com");
+  const { platform, call } = await connect();
+  const [jeeves, alfred] = (await call("get_my_projects")).json();
+  assert.equal(jeeves.name, "Jeeves");
+  assert.deepEqual(jeeves.sideChallengeIds, [29]);
+  assert.equal(jeeves.submitted, false);
+  assert.equal(alfred.submitted, true);
+  assert.equal(jeeves.links[0].link, "https://example.com");
+  assert.equal(jeeves.projectLinks, undefined);
+
+  // Links and submissions come embedded in the project list; side challenges are one batched request.
+  assert.ok(!platform.calls.includes("project.getProjectLinks"));
+  assert.ok(!platform.calls.includes("project.getProjectSubmission"));
+  assert.equal(platform.calls.filter((c) => c === "project.getProjectSideChallenges").length, 2);
+  assert.equal(platform.requests, 4);
 });
 
 test("stops all traffic after a Vercel checkpoint", async () => {

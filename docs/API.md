@@ -66,7 +66,7 @@ Useful event fields: `startTime`, `endTime`, `submissionsStartTime`, `submission
 | Proc | Kind | Input | Output / notes |
 |---|---|---|---|
 | `project.getTeamProject` | Q | `{teamId,eventId}` | Project row or null |
-| `project.getTeamProjects` | Q | `{teamId,eventId}` | `[project]` (event allows multiple submissions) |
+| `project.getTeamProjects` | Q | `{teamId,eventId}` | `[project]` (event allows multiple submissions). Each row embeds `projectLinks` and `submission` (null for a draft), so the two lookups below aren't needed when listing |
 | `project.getProjectLinks` | Q | `{projectId}` | `[{type: demo\|source_code\|video\|other\|presentation, link}]` |
 | `project.getProjectSideChallenges` | Q | `{projectId}` | `[{sideChallengeId}]` |
 | `project.getProjectSubmission` | Q | `{projectId}` | Truthy if submitted (final), otherwise a draft |
